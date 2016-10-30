@@ -1,0 +1,142 @@
+/*
+    1. Execute `gradle dependencies --configuration compile`
+    2. Note the large dependency graph
+    3. Using the `dependencyInsight` task, determine which version of `hibernate-validator` is used at compile time
+    4. Force version `4.0.0.GA` of `hibernate-validator` and verify the result
+    5. Generate a HTML dependency report
+*/
+
+apply plugin: "java"
+apply plugin: "maven"
+apply plugin: "project-report"
+apply plugin: "jacoco"
+apply plugin: "findbugs"
+apply plugin: "pmd"
+apply plugin: "checkstyle"
+
+
+def defaultEncoding = 'UTF-8'
+[compileJava, compileTestJava]*.options*.encoding = defaultEncoding
+
+group = "my.company"
+description = "My Java Library"
+version = "1.0"
+
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
+
+/** Configuration section */
+configurations {
+  compile {
+    resolutionStrategy.force "org.hibernate:hibernate-validator:4.0.0.GA"
+  }
+}
+
+jacoco {
+    toolVersion = "0.7.6.201602180812"
+    //reportsDir = file("$buildDir/customJacocoReportDir")
+}
+
+checkstyle {
+  ignoreFailures = true
+  showViolations = false;
+  toolVersion = "6.19"
+  sourceSets = [sourceSets.main]
+  reportsDir = file("$project.buildDir/reports/checkstyle")
+}
+
+findbugs {
+  ignoreFailures = true
+  toolVersion = "3.0.1"
+  sourceSets = [sourceSets.main]
+  findbugsTest.enabled=false
+  reportsDir = file("$project.buildDir/reports/findbugs")
+  effort = "max"
+}
+
+pmd {
+  ignoreFailures = true
+  //ruleSetFiles = rootProject.files("config/quality/pmd-rules.xml")
+  sourceSets = [sourceSets.main]
+  reportsDir = file("$project.buildDir/reports/pmd")
+  targetJdk = org.gradle.api.plugins.quality.TargetJdk.VERSION_1_7
+  toolVersion = "5.4.2"
+  pmdTest.enabled = false
+  ruleSets = ["java-basic", "java-braces", "java-comments", "java-strings", "java-unusedcode"]
+    /* 'java-android', 'java-basic', 'java-braces', 'java-clone', 'java-codesize',
+       'java-comments', 'java-controversial', 'java-coupling', 'java-design',
+       'java-empty', 'java-finalizers', 'java-imports', 'java-j2ee', 'java-javabeans',
+       'java-junit', 'java-logging-jakarta-commons', 'java-logging-java', 'java-migrating',
+       'java-naming', 'java-optimizations', 'java-strictexception', 'java-strings',
+       'java-sunsecure', 'java-typeresolution', 'java-unnecessary', 'java-unusedcode' */
+  //ruleSets = ["basic", "braces"]
+}
+
+
+
+
+/** Repository section **/
+repositories {
+    mavenCentral()
+    maven { url "http://repository.jboss.org/nexus/content/groups/public-jboss/" }
+    mavenLocal() 
+}
+
+dependencies {
+    compile "org.jboss.as:jboss-as-jpa:7.1.2.Final"
+    compile "commons-collections:commons-collections:3.2"
+    testCompile "junit:junit:4.11"
+}
+
+test {
+  maxParallelForks = (Runtime.runtime.availableProcessors() / 2) + 1
+
+  jacoco {
+    append = false
+    destinationFile = file("$buildDir/jacoco/jacocoTest.exec")
+    classDumpFile = file("$buildDir/jacoco/classpathdumps")
+  }
+}
+
+build {
+  finalizedBy jacocoTestReport
+  finalizedBy htmlDependencyReport
+  finalizedBy javadoc
+}
+jar {
+  manifest {
+    attributes 'Implementation-Title': 'Hello world', 'Implementation-Version': version
+  }
+}
+
+/** Reporting section */
+jacocoTestReport {
+    reports {
+        xml.enabled false
+        csv.enabled false
+        html.destination "${buildDir}/reports/jacoco"
+    }
+}
+tasks.withType(FindBugs) {
+    reports {
+        xml.enabled false
+        html.enabled true
+        html.stylesheet resources.text.fromFile('config/xsl/findbugs-fancy.xsl')
+    }
+}
+tasks.withType(Pmd) {
+   reports {
+       xml.enabled = true
+       html.enabled = true
+   }
+}
+tasks.withType(Checkstyle) {
+    reports {
+        xml.enabled false
+        html.enabled true
+        //html.stylesheet resources.text.fromFile('config/xsl/checkstyle-custom.xsl')
+    }
+}
+
+
