@@ -121,8 +121,8 @@ jacocoTestReport {
 }
 tasks.withType(FindBugs) {
     reports {
-        xml.enabled false
-        html.enabled true
+        xml.enabled true
+        html.enabled false
         html.stylesheet resources.text.fromFile('config/xsl/findbugs-fancy.xsl')
     }
 }
@@ -134,7 +134,7 @@ tasks.withType(Pmd) {
 }
 tasks.withType(Checkstyle) {
     reports {
-        xml.enabled false
+        xml.enabled true
         html.enabled true
         //html.stylesheet resources.text.fromFile('config/xsl/checkstyle-custom.xsl')
     }
