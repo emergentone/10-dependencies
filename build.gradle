@@ -7,13 +7,31 @@
 */
 
 apply plugin: "java"
-apply plugin: "maven"
+apply plugin: "maven-publish"
 apply plugin: "project-report"
 apply plugin: "jacoco"
 apply plugin: "findbugs"
 apply plugin: "pmd"
 apply plugin: "checkstyle"
 
+buildscript {
+    repositories {
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath "com.commercehub.gradle.plugin:gradle-avro-plugin:0.9.0"
+    }
+}
+apply plugin: "com.commercehub.gradle.plugin.avro"
+
+if (project.hasProperty("skipTests")) {
+  check.dependsOn-=test
+}
+if (project.hasProperty("skipITs")) {
+  test.exclude '**/*IT.class'
+}
 
 def defaultEncoding = 'UTF-8'
 [compileJava, compileTestJava]*.options*.encoding = defaultEncoding
@@ -87,12 +105,24 @@ repositories {
 dependencies {
     compile "org.jboss.as:jboss-as-jpa:7.1.2.Final"
     compile "commons-collections:commons-collections:3.2"
+    compile "org.apache.avro:avro:1.8.1"
     testCompile "junit:junit:4.11"
 }
 
-test {
-  maxParallelForks = (Runtime.runtime.availableProcessors() / 2) + 1
 
+//for Ant filter
+import org.apache.tools.ant.filters.ReplaceTokens
+task copyTestResources(type: Copy) {
+    from ("${projectDir}/src/test/resources") {
+        include "**/*.properties"
+        filter(ReplaceTokens,
+        tokens: [gradleVersion: project.gradle.gradleVersion, serviceUrl: project.serviceUrl])
+    }
+    into "${buildDir}/classes/test"
+}
+processTestResources.dependsOn copyTestResources
+test {
+  maxParallelForks = 1 //(Runtime.runtime.availableProcessors() / 2) + 1 
   jacoco {
     append = false
     //destinationFile = file("$buildDir/jacoco/jacocoTest.exec")
@@ -100,16 +130,79 @@ test {
   }
 }
 
+
 build {
   finalizedBy jacocoTestReport
   finalizedBy htmlDependencyReport
   finalizedBy javadoc
 }
+
 jar {
   manifest {
     attributes 'Implementation-Title': 'Hello world', 'Implementation-Version': version
   }
 }
+task sourceJar(type: Jar) {
+  from sourceSets.main.allJava
+}
+
+javadoc.options.addStringOption('-quiet')
+task javadocJar (type: Jar, dependsOn: javadoc) {
+  from javadoc.destinationDir
+}
+
+
+publishing {
+  publications {
+    mavenJava(MavenPublication) {
+      pom.withXml {
+        asNode().children().last() + {
+          resolveStrategy = Closure.DELEGATE_FIRST
+          name 'Gradle Sample 10 Example (Incubation)'
+          description 'Using the maven-publish plugin with a hello world example instrumented in Jenkins.'
+          url 'http://gradleSample10-incubation.org/'
+          developers {
+            developer {
+              name 'One developer'
+              email 'dl_one_dev@aol.com'
+            }
+          }
+          licenses {
+            license {
+              name 'Eclipse Public License - v 1.0'
+              url 'http://www.eclipse.org/legal/epl-v10.html'
+              distribution 'repo'
+            }
+          }
+          scm {
+            url 'git@github.com:emergentone/10-dependencies'
+            connection 'scm:git:git@github.com:emergentone/10-dependencies.git'
+            developerConnection 'scm:git:ssh:git@github.com:emergentone/10-dependencies.git'
+          }
+        }
+      }
+      from components.java
+      artifact sourceJar {
+        classifier 'sources'
+      }
+      artifact javadocJar {
+        classifier 'javadoc'
+      }
+    }
+  }
+  repositories {
+    // Credentials shall be stored in ~/.gradle/gradle.properties
+    maven {
+      url "http://localhost:8081/nexus/content/repositories/gradle"
+      credentials {
+        username "ecmerge"
+        password "password"
+      }
+    }
+  }
+}
+
+
 
 /** Reporting section */
 jacocoTestReport {
@@ -140,5 +233,3 @@ tasks.withType(Checkstyle) {
         html.stylesheet resources.text.fromFile('config/xsl/checkstyle-custom.xsl')
     }
 }
-
-
