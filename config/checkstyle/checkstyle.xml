@@ -17,6 +17,15 @@
         "-//Puppy Crawl//DTD Check Configuration 1.2//EN"
         "http://www.puppycrawl.com/dtds/configuration_1_2.dtd">
 <module name="Checker">
+
+    <!-- Checks whether files end with a new line.                        -->
+    <!-- See http://checkstyle.sf.net/config_misc.html#NewlineAtEndOfFile -->
+    <module name="NewlineAtEndOfFile"/>
+    
+    <!-- Checks for whitespace                               -->
+    <!-- See http://checkstyle.sf.net/config_whitespace.html -->
+    <module name="FileTabCharacter"/>
+
     <module name="TreeWalker">
         <!-- Naming -->
         <module name="ClassTypeParameterName"/>
@@ -26,9 +35,9 @@
         <module name="MemberName"/>
         <module name="MethodName"/>
         <module name="MethodTypeParameterName"/>
-        <!-- <module name="PackageName">
+        <module name="PackageName">
             <property name="format" value="^[a-z]+(\.[a-z][a-z0-9]*)*$"/>
-        </module> -->
+        </module>
         <module name="ParameterName"/>
         <module name="StaticVariableName"/>
         <module name="TypeName"/>

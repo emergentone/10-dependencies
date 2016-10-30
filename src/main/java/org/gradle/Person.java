@@ -1,7 +1,7 @@
 package org.gradle;
 
 import org.apache.commons.collections.list.GrowthList;
-
+/* */
 public class Person {
     private final String name;
 
@@ -10,7 +10,5 @@ public class Person {
         new GrowthList();
     }
 
-    public String getName() {
-        return name;
-    }
+    public String getName() { return name; }
 }

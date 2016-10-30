@@ -40,7 +40,7 @@ jacoco {
 
 checkstyle {
   ignoreFailures = true
-  showViolations = false;
+  showViolations = true
   toolVersion = "6.19"
   sourceSets = [sourceSets.main]
   reportsDir = file("$project.buildDir/reports/checkstyle")
@@ -53,6 +53,7 @@ findbugs {
   findbugsTest.enabled=false
   reportsDir = file("$project.buildDir/reports/findbugs")
   effort = "max"
+  reportLevel = "high"
 }
 
 pmd {
@@ -136,7 +137,7 @@ tasks.withType(Checkstyle) {
     reports {
         xml.enabled true
         html.enabled true
-        //html.stylesheet resources.text.fromFile('config/xsl/checkstyle-custom.xsl')
+        html.stylesheet resources.text.fromFile('config/xsl/checkstyle-custom.xsl')
     }
 }
 
