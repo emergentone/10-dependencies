@@ -35,7 +35,7 @@ configurations {
 
 jacoco {
     toolVersion = "0.7.6.201602180812"
-    //reportsDir = file("$buildDir/customJacocoReportDir")
+    //reportsDir = file("$project.buildDir/customJacocoReportDir")
 }
 
 checkstyle {
@@ -94,8 +94,8 @@ test {
 
   jacoco {
     append = false
-    destinationFile = file("$buildDir/jacoco/jacocoTest.exec")
-    classDumpFile = file("$buildDir/jacoco/classpathdumps")
+    //destinationFile = file("$buildDir/jacoco/jacocoTest.exec")
+    //classDumpFile = file("$buildDir/jacoco/classpathdumps")
   }
 }
 
@@ -112,6 +112,7 @@ jar {
 
 /** Reporting section */
 jacocoTestReport {
+    group = "Reporting"
     reports {
         xml.enabled true
         csv.enabled false
